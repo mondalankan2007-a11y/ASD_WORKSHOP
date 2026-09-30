@@ -13,30 +13,31 @@ async function readFile() {
     }
 }
 
+async function readFileWithDelay(){
+    await new Promise((resolve,reject)=>{
+        setTimeout(resolve,1500)
+    })
+    let products = await readFile()
+    return products
+}
+
 app.get("/products", async (req, res) => {
     try {
-        const data = await readFile();
+        const data = await readFileWithDelay();
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: "Error reading file" });
     }
 });
 
-
-
-
 app.get("/products/:id", async (req, res) => {
     try {
         const data = await readFile();
-
         const productId = Number(req.params.id);
-
         const product = data.find((p) => p.id === productId);
-
         if (!product) {
             return res.status(404).json({ error: "Product not found" });
         }
-
         res.json(product);
     } catch (err) {
         res.status(500).json({ error: "Error reading file" });
