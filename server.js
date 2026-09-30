@@ -1,39 +1,46 @@
 const express = require("express");
 const fs = require("fs");
-
 const app = express();
+const path = require("path");
 
+const filePath = path.join(__dirname, "db.json");
 
-app.get("/produts", (req, res) => {
-    fs.readFile("data.json", "utf8", (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: "Error reading file" });
-        }
+async function readFile() {
+    try{const data = await fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(data);}
+    catch(err){
+        console.log(err)
+    }
+}
 
-        res.json(JSON.parse(data));
-    });
+app.get("/products", async (req, res) => {
+    try {
+        const data = await readFile();
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Error reading file" });
+    }
 });
 
 
 
-app.get("/products/:id", (req, res) => {
-    fs.readFile("data.json", "utf8", (err, data) => {
-        if (err) {
-            return res.status(500).json({ error: "Error reading file" });
+
+app.get("/products/:id", async (req, res) => {
+    try {
+        const data = await readFile();
+
+        const productId = Number(req.params.id);
+
+        const product = data.find((p) => p.id === productId);
+
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
         }
 
-        const jsonData = JSON.parse(data);
-
-        const userId = Number(req.params.id);
-
-        const user = jsonData.users.find((u) => u.id === userId);
-
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        res.json(user);
-    });
+        res.json(product);
+    } catch (err) {
+        res.status(500).json({ error: "Error reading file" });
+    }
 });
 
 app.listen(3000, () => {
